@@ -1,0 +1,455 @@
+// Niri configuration — translated from Omarchy Hyprland config
+// https://github.com/YaLTeR/niri/wiki/Configuration:-Overview
+
+// ──────────────────────────────────────────────────────────────
+// Environment
+// ──────────────────────────────────────────────────────────────
+environment {
+    // PATH: repo bin shadows omarchy originals, then omarchy bin, then system
+    "PATH" "@@REPO@@/bin:@@HOME@@/.local/share/omarchy/bin:/usr/local/bin:/usr/bin"
+
+    // Cursor
+    "XCURSOR_SIZE" "24"
+
+    // Force Wayland
+    "GDK_BACKEND" "wayland,x11,*"
+    "QT_QPA_PLATFORM" "wayland;xcb"
+    "QT_STYLE_OVERRIDE" "kvantum"
+    "SDL_VIDEODRIVER" "wayland"
+    "MOZ_ENABLE_WAYLAND" "1"
+    "ELECTRON_OZONE_PLATFORM_HINT" "wayland"
+    "OZONE_PLATFORM" "wayland"
+    "XDG_SESSION_TYPE" "wayland"
+    "XDG_CURRENT_DESKTOP" "niri"
+    "XDG_SESSION_DESKTOP" "niri"
+
+    // XCompose
+    "XCOMPOSEFILE" "~/.XCompose"
+
+    // HiDPI (matches monitors.conf GDK_SCALE=2)
+    "GDK_SCALE" "2"
+
+    // Gum confirm styling (from looknfeel.conf)
+    "GUM_CONFIRM_PROMPT_FOREGROUND" "6"
+    "GUM_CONFIRM_SELECTED_FOREGROUND" "0"
+    "GUM_CONFIRM_SELECTED_BACKGROUND" "2"
+    "GUM_CONFIRM_UNSELECTED_FOREGROUND" "0"
+    "GUM_CONFIRM_UNSELECTED_BACKGROUND" "8"
+}
+
+// ──────────────────────────────────────────────────────────────
+// Input
+// ──────────────────────────────────────────────────────────────
+input {
+    keyboard {
+        xkb {
+            layout "us"
+            options "compose:caps"
+        }
+    }
+
+    touchpad {
+        tap
+        natural-scroll
+        scroll-factor 0.4
+    }
+
+    mouse {
+        // sensitivity 0 is default
+    }
+
+    warp-mouse-to-focus
+    focus-follows-mouse max-scroll-amount="0%"
+}
+
+// ──────────────────────────────────────────────────────────────
+// Output (monitors)
+// ──────────────────────────────────────────────────────────────
+// Default: auto-detect with scale 2 (matches Hyprland monitor=,preferred,auto,auto + GDK_SCALE=2)
+// Uncomment and customize for specific monitors:
+// output "eDP-1" {
+//     scale 2.0
+// }
+// output "DP-5" {
+//     mode "6016x3384@60"
+//     scale 2.0
+// }
+
+// ──────────────────────────────────────────────────────────────
+// Layout
+// ──────────────────────────────────────────────────────────────
+layout {
+    gaps 10
+
+    border {
+        width 2
+        active-color "#33ccff"
+        inactive-color "#595959"
+    }
+
+    // New windows take half the screen by default
+    default-column-width { proportion 0.5; }
+
+    // Cycle through these widths with Mod+R
+    preset-column-widths {
+        proportion 0.33
+        proportion 0.5
+        proportion 0.67
+    }
+
+    // Preset window heights with Mod+Shift+R
+    preset-window-heights {
+        proportion 0.33
+        proportion 0.5
+        proportion 0.67
+        proportion 1.0
+    }
+
+    // Center focused column when it changes
+    // center-focused-column "never"
+}
+
+// ──────────────────────────────────────────────────────────────
+// Appearance
+// ──────────────────────────────────────────────────────────────
+prefer-no-csd
+
+cursor {
+    hide-after-inactive-ms 5000
+    hide-when-typing
+}
+
+hotkey-overlay {
+    skip-at-startup
+}
+
+screenshot-path "~/Pictures/screenshot-%Y-%m-%d_%H-%M-%S.png"
+
+// ──────────────────────────────────────────────────────────────
+// Animations
+// ──────────────────────────────────────────────────────────────
+animations {
+    // Match Hyprland's easeOutQuint feel
+    workspace-switch {
+        spring damping-ratio=1.0 stiffness=1000 epsilon=0.0001
+    }
+    window-open {
+        duration-ms 200
+        curve "ease-out-expo"
+    }
+    window-close {
+        duration-ms 150
+        curve "linear"
+    }
+    horizontal-view-movement {
+        spring damping-ratio=1.0 stiffness=800 epsilon=0.0001
+    }
+    window-movement {
+        spring damping-ratio=1.0 stiffness=800 epsilon=0.0001
+    }
+    window-resize {
+        spring damping-ratio=1.0 stiffness=800 epsilon=0.0001
+    }
+    config-notification-open-close {
+        spring damping-ratio=0.6 stiffness=1000 epsilon=0.001
+    }
+}
+
+// ──────────────────────────────────────────────────────────────
+// Window rules
+// ──────────────────────────────────────────────────────────────
+
+// Default slight opacity for all windows
+window-rule {
+    opacity 0.97
+}
+
+// Screensaver — open fullscreen
+window-rule {
+    match app-id=r#"org\.omarchy\.screensaver"#
+    open-fullscreen true
+}
+
+// Floating-style windows — open as columns at a comfortable size
+window-rule {
+    match app-id=r#"org\.omarchy\.(bluetui|impala|wiremix|btop|terminal|bash)"#
+    match app-id=r#"org\.gnome\.(NautilusPreviewer|Evince|Calculator)"#
+    match app-id=r#"(com\.gabm\.satty|Omarchy|About|TUI\.float|imv|mpv)"#
+    default-column-width { fixed 875; }
+}
+
+// No opacity on media windows
+window-rule {
+    match app-id=r#"^(zoom|vlc|mpv|org\.kde\.kdenlive|com\.obsproject\.Studio|com\.github\.PintaProject\.Pinta|imv|org\.gnome\.NautilusPreviewer)$"#
+    opacity 1.0
+}
+
+// Full opacity for browsers showing video
+window-rule {
+    match app-id=r#"(google-)?[cC]hrom(e|ium)|[bB]rave-browser|[mM]icrosoft-edge|Vivaldi-stable|helium"#
+    opacity 1.0
+}
+
+window-rule {
+    match app-id=r#"[fF]irefox|zen|librewolf"#
+    opacity 1.0
+}
+
+// Chromium-based browsers (fix --app tiling bug is not needed in Niri, but keep opacity)
+window-rule {
+    match app-id=r#"(google-)?[cC]hrom(e|ium)|[bB]rave-browser"#
+    opacity 1.0
+}
+
+// No opacity on full-screen games
+window-rule {
+    match app-id="com.libretro.RetroArch"
+    opacity 1.0
+    // block-out-from "screen-capture" // uncomment if needed
+}
+
+window-rule {
+    match app-id="steam"
+    opacity 1.0
+}
+
+window-rule {
+    match app-id="qemu"
+    opacity 1.0
+}
+
+// 1Password / Bitwarden — block from screen capture
+window-rule {
+    match app-id=r#"^(1[pP]assword|Bitwarden)$"#
+    block-out-from "screen-capture"
+}
+
+// ──────────────────────────────────────────────────────────────
+// Keybindings
+// ──────────────────────────────────────────────────────────────
+binds {
+    // ── App launchers (from ~/.config/hypr/bindings.conf) ──
+    Mod+Return  { spawn "uwsm-app" "--" "xdg-terminal-exec" "--dir" "$(omarchy-cmd-terminal-cwd)"; }
+    Mod+Shift+F { spawn "uwsm-app" "--" "nautilus" "--new-window"; }
+    Mod+Shift+B { spawn "omarchy-launch-browser"; }
+    Mod+Shift+Alt+B { spawn "omarchy-launch-browser" "--private"; }
+    Mod+Shift+M { spawn "omarchy-launch-or-focus" "spotify"; }
+    Mod+Shift+N { spawn "omarchy-launch-editor"; }
+    Mod+Shift+D { spawn "omarchy-launch-tui" "lazydocker"; }
+    Mod+Shift+G { spawn "omarchy-launch-or-focus" "^signal$" "uwsm-app -- signal-desktop"; }
+    Mod+Shift+O { spawn "omarchy-launch-or-focus" "^obsidian$" "uwsm-app -- obsidian -disable-gpu --enable-wayland-ime"; }
+    Mod+Shift+W { spawn "uwsm-app" "--" "typora" "--enable-wayland-ime"; }
+    Mod+Shift+Slash { spawn "uwsm-app" "--" "1password"; }
+
+    // Web apps
+    Mod+Shift+A     { spawn "omarchy-launch-webapp" "https://chatgpt.com"; }
+    Mod+Shift+Alt+A { spawn "omarchy-launch-webapp" "https://grok.com"; }
+    Mod+Shift+C     { spawn "omarchy-launch-webapp" "https://app.hey.com/calendar/weeks/"; }
+    Mod+Shift+E     { spawn "omarchy-launch-webapp" "https://app.hey.com"; }
+    Mod+Shift+Y     { spawn "omarchy-launch-webapp" "https://youtube.com/"; }
+    Mod+Shift+Alt+G { spawn "omarchy-launch-or-focus-webapp" "WhatsApp" "https://web.whatsapp.com/"; }
+    Mod+Shift+Ctrl+G { spawn "omarchy-launch-or-focus-webapp" "Google Messages" "https://messages.google.com/web/conversations"; }
+    Mod+Shift+P     { spawn "omarchy-launch-or-focus-webapp" "Google Photos" "https://photos.google.com/"; }
+    Mod+Shift+X     { spawn "omarchy-launch-webapp" "https://x.com/"; }
+    Mod+Shift+Alt+X { spawn "omarchy-launch-webapp" "https://x.com/compose/post"; }
+
+    // ── Tiling / Window management ──
+    Mod+W           { close-window; }
+    Ctrl+Alt+Delete { spawn "omarchy-hyprland-window-close-all"; }
+
+    // Fullscreen
+    Mod+F           { maximize-column; }
+    Mod+Ctrl+F      { fullscreen-window; }
+
+    // Focus navigation
+    Mod+Left        { focus-column-left; }
+    Mod+Right       { focus-column-right; }
+    Mod+Up          { focus-window-or-workspace-up; }
+    Mod+Down        { focus-window-or-workspace-down; }
+
+    // Move windows
+    Mod+Shift+Left  { move-column-left; }
+    Mod+Shift+Right { move-column-right; }
+    Mod+Shift+Up    { move-window-up-or-to-workspace-up; }
+    Mod+Shift+Down  { move-window-down-or-to-workspace-down; }
+
+    // Workspaces (code:10=1, code:11=2, ..., code:19=10)
+    Mod+1           { focus-workspace 1; }
+    Mod+2           { focus-workspace 2; }
+    Mod+3           { focus-workspace 3; }
+    Mod+4           { focus-workspace 4; }
+    Mod+5           { focus-workspace 5; }
+    Mod+6           { focus-workspace 6; }
+    Mod+7           { focus-workspace 7; }
+    Mod+8           { focus-workspace 8; }
+    Mod+9           { focus-workspace 9; }
+    Mod+0           { focus-workspace 10; }
+
+    // Move window to workspace
+    Mod+Shift+1     { move-column-to-workspace 1; }
+    Mod+Shift+2     { move-column-to-workspace 2; }
+    Mod+Shift+3     { move-column-to-workspace 3; }
+    Mod+Shift+4     { move-column-to-workspace 4; }
+    Mod+Shift+5     { move-column-to-workspace 5; }
+    Mod+Shift+6     { move-column-to-workspace 6; }
+    Mod+Shift+7     { move-column-to-workspace 7; }
+    Mod+Shift+8     { move-column-to-workspace 8; }
+    Mod+Shift+9     { move-column-to-workspace 9; }
+    Mod+Shift+0     { move-column-to-workspace 10; }
+
+    // TAB between workspaces
+    Mod+Tab         { focus-workspace-down; }
+    Mod+Shift+Tab   { focus-workspace-up; }
+
+    // Alt+Tab: cycle windows in column
+    Alt+Tab         { focus-window-or-workspace-down; }
+    Alt+Shift+Tab   { focus-window-or-workspace-up; }
+
+    // Resize
+    Mod+Minus       { set-column-width "-10%"; }
+    Mod+Equal       { set-column-width "+10%"; }
+    Mod+Shift+Minus { set-window-height "-10%"; }
+    Mod+Shift+Equal { set-window-height "+10%"; }
+
+    // Cycle column width presets
+    Mod+R           { switch-preset-column-width; }
+    Mod+Shift+R     { switch-preset-window-height; }
+
+    // Consume/expel window into/from column (Niri's column stacking)
+    Mod+BracketLeft  { consume-or-expel-window-left; }
+    Mod+BracketRight { consume-or-expel-window-right; }
+
+    // Center column on screen
+    Mod+Ctrl+Shift+C { center-column; }
+
+    // Scroll through workspaces with mouse
+    Mod+WheelScrollDown { focus-workspace-down; }
+    Mod+WheelScrollUp   { focus-workspace-up; }
+
+    // Move columns with mouse wheel
+    Mod+Shift+WheelScrollDown { move-column-right; }
+    Mod+Shift+WheelScrollUp   { move-column-left; }
+
+    // ── Menus (from utilities.conf) ──
+    Mod+Space       { spawn "omarchy-launch-walker"; }
+    Mod+Ctrl+E      { spawn "omarchy-launch-walker" "-m" "symbols"; }
+    Mod+Alt+Space   { spawn "omarchy-menu"; }
+    Mod+Escape      { spawn "omarchy-menu" "system"; }
+    XF86PowerOff    { spawn "omarchy-menu" "system"; }
+    Mod+K           { spawn "omarchy-menu-keybindings"; }
+    XF86Calculator  { spawn "gnome-calculator"; }
+
+    // ── Aesthetics ──
+    Mod+Shift+Space      { spawn "omarchy-toggle-waybar"; }
+    Mod+Ctrl+Space       { spawn "omarchy-theme-bg-next"; }
+    Mod+Shift+Ctrl+Space { spawn "omarchy-menu" "theme"; }
+    // Note: Toggle opacity (SUPER+BACKSPACE) and toggle gaps (SUPER+SHIFT+BACKSPACE) not available in Niri
+
+    // ── Notifications ──
+    Mod+Comma            { spawn "makoctl" "dismiss"; }
+    Mod+Shift+Comma      { spawn "makoctl" "dismiss" "--all"; }
+    Mod+Ctrl+Comma       { spawn "bash" "-c" "makoctl mode -t do-not-disturb && makoctl mode | grep -q 'do-not-disturb' && notify-send 'Silenced notifications' || notify-send 'Enabled notifications'"; }
+    Mod+Alt+Comma        { spawn "makoctl" "invoke"; }
+    Mod+Shift+Alt+Comma  { spawn "makoctl" "restore"; }
+
+    // ── Toggles ──
+    Mod+Ctrl+I      { spawn "omarchy-toggle-idle"; }
+    Mod+Ctrl+N      { spawn "omarchy-toggle-nightlight"; }
+
+    // ── Apple Display brightness ──
+    Ctrl+F1         { spawn "omarchy-cmd-apple-display-brightness" "-5000"; }
+    Ctrl+F2         { spawn "omarchy-cmd-apple-display-brightness" "+5000"; }
+    Shift+Ctrl+F2   { spawn "omarchy-cmd-apple-display-brightness" "+60000"; }
+
+    // ── Captures ──
+    Print           { spawn "omarchy-cmd-screenshot"; }
+    Shift+Print     { spawn "omarchy-cmd-screenshot" "smart" "clipboard"; }
+    Alt+Print       { spawn "omarchy-menu" "screenrecord"; }
+    Mod+Print       { spawn "bash" "-c" "pos=$(slurp -p) && color=$(grim -g \"${pos} 1x1\" -t ppm - | magick - -format '#%[hex:p{0,0}]' info:-) && wl-copy \"$color\" && notify-send 'Color picked' \"$color\""; }
+
+    // ── File sharing ──
+    Mod+Ctrl+S      { spawn "omarchy-menu" "share"; }
+
+    // ── Information ──
+    Mod+Ctrl+Alt+T  { spawn "bash" "-c" "notify-send \"    $(date +'%A %H:%M  —  %d %B W%V %Y')\""; }
+    Mod+Ctrl+Alt+B  { spawn "bash" "-c" "notify-send \"󰁹    Battery is at $(omarchy-battery-remaining)%\""; }
+
+    // ── Control panels ──
+    Mod+Ctrl+A      { spawn "omarchy-launch-audio"; }
+    Mod+Ctrl+B      { spawn "omarchy-launch-bluetooth"; }
+    Mod+Ctrl+W      { spawn "omarchy-launch-wifi"; }
+    Mod+Ctrl+T      { spawn "omarchy-launch-tui" "btop"; }
+
+    // ── Dictation ──
+    Mod+Ctrl+X      { spawn "voxtype" "record" "start"; }
+
+    // ── Lock ──
+    Mod+Ctrl+L      { spawn "omarchy-lock-screen"; }
+
+    // ── Clipboard (using wtype instead of hyprland's sendshortcut) ──
+    Mod+C           { spawn "wtype" "-M" "ctrl" "-P" "Insert" "-m" "ctrl"; }
+    Mod+V           { spawn "wtype" "-M" "shift" "-P" "Insert" "-m" "shift"; }
+    Mod+X           { spawn "wtype" "-M" "ctrl" "-k" "x" "-m" "ctrl"; }
+    Mod+Ctrl+V      { spawn "omarchy-launch-walker" "-m" "clipboard"; }
+
+    // ── Media keys (from media.conf) ──
+    XF86AudioRaiseVolume  allow-when-locked=true { spawn "swayosd-client" "--output-volume" "raise"; }
+    XF86AudioLowerVolume  allow-when-locked=true { spawn "swayosd-client" "--output-volume" "lower"; }
+    XF86AudioMute         allow-when-locked=true { spawn "swayosd-client" "--output-volume" "mute-toggle"; }
+    XF86AudioMicMute      allow-when-locked=true { spawn "swayosd-client" "--input-volume" "mute-toggle"; }
+    XF86MonBrightnessUp   allow-when-locked=true { spawn "swayosd-client" "--brightness" "raise"; }
+    XF86MonBrightnessDown allow-when-locked=true { spawn "swayosd-client" "--brightness" "lower"; }
+
+    // Precise 1% adjustments
+    Alt+XF86AudioRaiseVolume  allow-when-locked=true { spawn "swayosd-client" "--output-volume" "+1"; }
+    Alt+XF86AudioLowerVolume  allow-when-locked=true { spawn "swayosd-client" "--output-volume" "-1"; }
+    Alt+XF86MonBrightnessUp   allow-when-locked=true { spawn "swayosd-client" "--brightness" "+1"; }
+    Alt+XF86MonBrightnessDown allow-when-locked=true { spawn "swayosd-client" "--brightness" "-1"; }
+
+    // Media player controls
+    XF86AudioNext   allow-when-locked=true { spawn "swayosd-client" "--playerctl" "next"; }
+    XF86AudioPause  allow-when-locked=true { spawn "swayosd-client" "--playerctl" "play-pause"; }
+    XF86AudioPlay   allow-when-locked=true { spawn "swayosd-client" "--playerctl" "play-pause"; }
+    XF86AudioPrev   allow-when-locked=true { spawn "swayosd-client" "--playerctl" "previous"; }
+
+    // Switch audio output
+    Mod+XF86AudioMute { spawn "omarchy-cmd-audio-switch"; }
+
+    // ── Niri-specific ──
+    Mod+Shift+Q     { quit; }
+}
+
+// ──────────────────────────────────────────────────────────────
+// Autostart
+// ──────────────────────────────────────────────────────────────
+
+// Idle management (replaces hypridle)
+spawn-at-startup "swayidle" "-w" "timeout" "150" "pidof swaylock || omarchy-launch-screensaver" "timeout" "300" "loginctl lock-session" "timeout" "330" "niri msg action power-off-monitors" "resume" "niri msg action power-on-monitors" "before-sleep" "loginctl lock-session" "lock" "omarchy-lock-screen"
+
+// Notifications
+spawn-at-startup "uwsm-app" "--" "mako"
+
+// Waybar with Niri-specific config
+spawn-at-startup "waybar" "-c" "@@REPO@@/waybar/config.jsonc"
+
+// Input method
+spawn-at-startup "uwsm-app" "--" "fcitx5"
+
+// Wallpaper
+spawn-at-startup "uwsm-app" "--" "swaybg" "-i" "@@HOME@@/.config/omarchy/current/background" "-m" "fill"
+
+// OSD server
+spawn-at-startup "uwsm-app" "--" "swayosd-server"
+
+// Polkit agent
+spawn-at-startup "/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1"
+
+// XWayland support
+spawn-at-startup "xwayland-satellite"
+
+// First run check
+spawn-at-startup "omarchy-cmd-first-run"
+
+// Import environment for systemd/dbus
+spawn-at-startup "systemctl" "--user" "import-environment"
+spawn-at-startup "dbus-update-activation-environment" "--systemd" "--all"
