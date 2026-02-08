@@ -1,0 +1,24 @@
+#!/bin/bash
+
+# Toggle nightlight (warm screen temperature).
+# Niri wrapper: replaces hyprsunset with wlsunset.
+
+source "$(dirname "$0")/../lib.sh"
+
+if ! is_niri; then
+  exec ~/.local/share/omarchy/bin/omarchy-toggle-nightlight "$@"
+fi
+
+if pgrep -x wlsunset >/dev/null; then
+  pkill -x wlsunset
+  notify-send "   Daylight screen temperature"
+else
+  wlsunset -t 4000 -T 6000 &
+  disown
+  notify-send "  Nightlight screen temperature"
+fi
+
+# Restart waybar if it has a nightlight module
+if grep -q "custom/nightlight" ~/.config/waybar/config.jsonc 2>/dev/null; then
+  omarchy-restart-waybar
+fi

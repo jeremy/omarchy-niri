@@ -1,0 +1,18 @@
+#!/bin/bash
+
+# Close all open windows.
+# Niri wrapper: replaces hyprctl clients/dispatch with niri msg equivalents.
+
+source "$(dirname "$0")/../lib.sh"
+
+if ! is_niri; then
+  exec ~/.local/share/omarchy/bin/omarchy-hyprland-window-close-all "$@"
+fi
+
+# Close all open windows
+niri msg -j windows | jq -r '.[].id' | while read -r id; do
+  niri msg action close-window --id "$id"
+done
+
+# Move to first workspace
+niri msg action focus-workspace 1

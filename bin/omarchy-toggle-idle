@@ -1,0 +1,25 @@
+#!/bin/bash
+
+# Toggle idle management on/off.
+# Niri wrapper: replaces hypridle with swayidle.
+
+source "$(dirname "$0")/../lib.sh"
+
+if ! is_niri; then
+  exec ~/.local/share/omarchy/bin/omarchy-toggle-idle "$@"
+fi
+
+if pgrep -x swayidle >/dev/null; then
+  pkill -x swayidle
+  notify-send "Stop locking computer when idle"
+else
+  swayidle -w \
+    timeout 150 'pidof swaylock || omarchy-launch-screensaver' \
+    timeout 300 'loginctl lock-session' \
+    timeout 330 'niri msg action power-off-monitors' \
+    resume 'niri msg action power-on-monitors' \
+    before-sleep 'loginctl lock-session' \
+    lock 'omarchy-lock-screen' &
+  disown
+  notify-send "Now locking computer when idle"
+fi

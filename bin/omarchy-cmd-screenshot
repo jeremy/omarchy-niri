@@ -1,0 +1,109 @@
+#!/bin/bash
+
+# Take a screenshot of the whole screen, a specific window, or a user-drawn region.
+# Niri wrapper: replaces hyprctl monitor/client queries with niri msg equivalents.
+
+source "$(dirname "$0")/../lib.sh"
+
+if ! is_niri; then
+  exec ~/.local/share/omarchy/bin/omarchy-cmd-screenshot "$@"
+fi
+
+[[ -f ~/.config/user-dirs.dirs ]] && source ~/.config/user-dirs.dirs
+OUTPUT_DIR="${OMARCHY_SCREENSHOT_DIR:-${XDG_PICTURES_DIR:-$HOME/Pictures}}"
+
+if [[ ! -d "$OUTPUT_DIR" ]]; then
+  notify-send "Screenshot directory does not exist: $OUTPUT_DIR" -u critical -t 3000
+  exit 1
+fi
+
+pkill slurp && exit 0
+
+MODE="${1:-smart}"
+PROCESSING="${2:-slurp}"
+
+get_rectangles() {
+  # Get focused output geometry
+  local output
+  output=$(niri msg -j focused-output)
+  local out_x out_y out_w out_h out_scale
+  out_x=$(echo "$output" | jq -r '.logical.x')
+  out_y=$(echo "$output" | jq -r '.logical.y')
+  out_w=$(echo "$output" | jq -r '.logical.width')
+  out_h=$(echo "$output" | jq -r '.logical.height')
+
+  echo "${out_x},${out_y} ${out_w}x${out_h}"
+
+  # Get all windows on the focused workspace
+  local focused_ws
+  focused_ws=$(echo "$output" | jq -r '.current_workspace')
+  niri msg -j windows | jq -r --argjson ws "$focused_ws" \
+    '.[] | select(.workspace_id == $ws) | "\(.x),\(.y) \(.width)x\(.height)"'
+}
+
+# Select based on mode
+case "$MODE" in
+  region)
+    wayfreeze & PID=$!
+    sleep .1
+    SELECTION=$(slurp 2>/dev/null)
+    kill $PID 2>/dev/null
+    ;;
+  windows)
+    wayfreeze & PID=$!
+    sleep .1
+    SELECTION=$(get_rectangles | slurp -r 2>/dev/null)
+    kill $PID 2>/dev/null
+    ;;
+  fullscreen)
+    local_output=$(niri msg -j focused-output)
+    out_x=$(echo "$local_output" | jq -r '.logical.x')
+    out_y=$(echo "$local_output" | jq -r '.logical.y')
+    out_w=$(echo "$local_output" | jq -r '.logical.width')
+    out_h=$(echo "$local_output" | jq -r '.logical.height')
+    SELECTION="${out_x},${out_y} ${out_w}x${out_h}"
+    ;;
+  smart|*)
+    RECTS=$(get_rectangles)
+    wayfreeze & PID=$!
+    sleep .1
+    SELECTION=$(echo "$RECTS" | slurp 2>/dev/null)
+    kill $PID 2>/dev/null
+
+    # If the selection area is L * W < 20, snap to the containing rectangle
+    if [[ "$SELECTION" =~ ^([0-9]+),([0-9]+)[[:space:]]([0-9]+)x([0-9]+)$ ]]; then
+      if (( ${BASH_REMATCH[3]} * ${BASH_REMATCH[4]} < 20 )); then
+        click_x="${BASH_REMATCH[1]}"
+        click_y="${BASH_REMATCH[2]}"
+
+        while IFS= read -r rect; do
+          if [[ "$rect" =~ ^([0-9]+),([0-9]+)[[:space:]]([0-9]+)x([0-9]+) ]]; then
+            rect_x="${BASH_REMATCH[1]}"
+            rect_y="${BASH_REMATCH[2]}"
+            rect_width="${BASH_REMATCH[3]}"
+            rect_height="${BASH_REMATCH[4]}"
+
+            if (( click_x >= rect_x && click_x < rect_x+rect_width && click_y >= rect_y && click_y < rect_y+rect_height )); then
+              SELECTION="${rect_x},${rect_y} ${rect_width}x${rect_height}"
+              break
+            fi
+          fi
+        done <<< "$RECTS"
+      fi
+    fi
+    ;;
+esac
+
+[ -z "$SELECTION" ] && exit 0
+
+if [[ $PROCESSING == "slurp" ]]; then
+  grim -g "$SELECTION" - |
+    satty --filename - \
+      --output-filename "$OUTPUT_DIR/screenshot-$(date +'%Y-%m-%d_%H-%M-%S').png" \
+      --early-exit \
+      --actions-on-enter save-to-clipboard \
+      --save-after-copy \
+      --copy-command 'wl-copy'
+else
+  grim -g "$SELECTION" - | wl-copy
+fi

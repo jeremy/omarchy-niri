@@ -1,0 +1,21 @@
+#!/bin/bash
+
+# Locks the system using swaylock, but not before ensuring 1password has also been locked, and the screensaver stopped.
+# Niri wrapper: replaces hyprlock with swaylock.
+
+source "$(dirname "$0")/../lib.sh"
+
+if ! is_niri; then
+  exec ~/.local/share/omarchy/bin/omarchy-lock-screen "$@"
+fi
+
+# Lock the screen
+pidof swaylock || swaylock &
+
+# Ensure 1password is locked
+if pgrep -x "1password" >/dev/null; then
+  1password --lock &
+fi
+
+# Avoid running screensaver when locked
+pkill -f org.omarchy.screensaver

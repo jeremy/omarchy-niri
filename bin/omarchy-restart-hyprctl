@@ -1,0 +1,21 @@
+#!/bin/bash
+
+# Reload compositor configuration (used by Omarchy theme switching).
+# Niri wrapper: replaces hyprctl reload with niri msg action reload.
+
+source "$(dirname "$0")/../lib.sh"
+
+if ! is_niri; then
+  exec ~/.local/share/omarchy/bin/omarchy-restart-hyprctl "$@"
+fi
+
+# Niri doesn't have a reload command — restart swaybg for wallpaper
+# and waybar for theme/style changes
+pkill swaybg || true
+swaybg -i ~/.config/omarchy/current/background -m fill &
+disown
+
+pkill waybar || true
+REPO="$(cd "$(dirname "$0")/.." && pwd)"
+waybar -c "$REPO/waybar/config.jsonc" &
+disown

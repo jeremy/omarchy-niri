@@ -1,0 +1,19 @@
+#!/bin/bash
+
+# Reboot command that first closes all application windows.
+# Niri wrapper: delegates to our niri-aware close-all script.
+
+source "$(dirname "$0")/../lib.sh"
+
+if ! is_niri; then
+  exec ~/.local/share/omarchy/bin/omarchy-cmd-reboot "$@"
+fi
+
+omarchy-state clear re*-required
+
+# Schedule the reboot to happen after closing windows (detached from terminal)
+nohup bash -c "sleep 2 && systemctl reboot --no-wall" >/dev/null 2>&1 &
+
+# Now close all windows (uses our niri-aware wrapper)
+omarchy-hyprland-window-close-all
+sleep 1

@@ -1,0 +1,65 @@
+#!/bin/bash
+
+# Launch the Omarchy screensaver in the default terminal.
+# Niri wrapper: replaces hyprctl dispatch/monitors with niri msg equivalents and direct process spawning.
+
+source "$(dirname "$0")/../lib.sh"
+
+if ! is_niri; then
+  exec ~/.local/share/omarchy/bin/omarchy-launch-screensaver "$@"
+fi
+
+# Exit early if we don't have tte
+if ! command -v tte &>/dev/null; then
+  exit 1
+fi
+
+# Exit early if screensaver is already running
+pgrep -f org.omarchy.screensaver && exit 0
+
+# Allow screensaver to be turned off but also force started
+if [[ -f ~/.local/state/omarchy/toggles/screensaver-off ]] && [[ $1 != "force" ]]; then
+  exit 1
+fi
+
+# Silently quit Walker on overlay
+walker -q
+
+terminal=$(xdg-terminal-exec --print-id)
+
+spawn_screensaver() {
+  case $terminal in
+  *Alacritty*)
+    alacritty --class=org.omarchy.screensaver \
+      --config-file ~/.local/share/omarchy/default/alacritty/screensaver.toml \
+      -e omarchy-cmd-screensaver &
+    ;;
+  *ghostty*)
+    ghostty --class=org.omarchy.screensaver \
+      --config-file=~/.local/share/omarchy/default/ghostty/screensaver \
+      --font-size=18 \
+      -e omarchy-cmd-screensaver &
+    ;;
+  *kitty*)
+    kitty --class=org.omarchy.screensaver \
+      --override font_size=18 \
+      --override window_padding_width=0 \
+      -e omarchy-cmd-screensaver &
+    ;;
+  *)
+    notify-send "Screensaver only runs in Alacritty, Ghostty, or Kitty"
+    return 1
+    ;;
+  esac
+}
+
+# Spawn one screensaver per output, focusing each before spawning so
+# niri places the window on the correct monitor. The window rule
+# (match app-id org.omarchy.screensaver → open-fullscreen) handles fullscreen.
+mapfile -t outputs < <(niri msg -j outputs | jq -r 'keys[]')
+
+for output in "${outputs[@]}"; do
+  niri msg action focus-monitor "$output"
+  spawn_screensaver || break
+  sleep 0.1
+done

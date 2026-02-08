@@ -1,0 +1,19 @@
+#!/bin/bash
+
+# Shutdown command that first closes all application windows.
+# Niri wrapper: delegates to our niri-aware close-all script.
+
+source "$(dirname "$0")/../lib.sh"
+
+if ! is_niri; then
+  exec ~/.local/share/omarchy/bin/omarchy-cmd-shutdown "$@"
+fi
+
+omarchy-state clear re*-required
+
+# Schedule the shutdown to happen after closing windows (detached from terminal)
+nohup bash -c "sleep 2 && systemctl poweroff --no-wall" >/dev/null 2>&1 &
+
+# Now close all windows (uses our niri-aware wrapper)
+omarchy-hyprland-window-close-all
+sleep 1

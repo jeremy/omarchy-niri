@@ -1,0 +1,40 @@
+#!/bin/bash
+
+# Run the Omarchy screensaver using random effects from TTE.
+# Niri wrapper: replaces hyprctl activewindow/keyword with niri msg equivalents.
+
+source "$(dirname "$0")/../lib.sh"
+
+if ! is_niri; then
+  exec ~/.local/share/omarchy/bin/omarchy-cmd-screensaver "$@"
+fi
+
+screensaver_in_focus() {
+  niri msg -j focused-window 2>/dev/null | jq -e '.app_id == "org.omarchy.screensaver"' >/dev/null 2>&1
+}
+
+exit_screensaver() {
+  pkill -x tte 2>/dev/null
+  pkill -f org.omarchy.screensaver 2>/dev/null
+  exit 0
+}
+
+# Exit the screensaver on signals and input from keyboard and mouse
+trap exit_screensaver SIGINT SIGTERM SIGHUP SIGQUIT
+
+printf '\033]11;rgb:00/00/00\007'  # Set background color to black
+
+tty=$(tty 2>/dev/null)
+
+while true; do
+  tte -i ~/.config/omarchy/branding/screensaver.txt \
+    --frame-rate 120 --canvas-width 0 --canvas-height 0 --reuse-canvas --anchor-canvas c --anchor-text c\
+    --random-effect --exclude-effects dev_worm \
+    --no-eol --no-restore-cursor &
+
+  while pgrep -t "${tty#/dev/}" -x tte >/dev/null; do
+    if read -n1 -t 1 || ! screensaver_in_focus; then
+      exit_screensaver
+    fi
+  done
+done

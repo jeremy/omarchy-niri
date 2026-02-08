@@ -1,0 +1,102 @@
+#!/bin/bash
+
+# Display Niri keybindings using walker for an interactive search menu.
+# Niri wrapper: replaces hyprctl binds query with a static keybinding list parsed from config.
+
+source "$(dirname "$0")/../lib.sh"
+
+if ! is_niri; then
+  exec ~/.local/share/omarchy/bin/omarchy-menu-keybindings "$@"
+fi
+
+# Since Niri doesn't expose bindings via IPC like Hyprland does,
+# we maintain a static list of keybindings derived from config.kdl
+
+output_keybindings() {
+  cat <<'BINDINGS'
+SUPER + RETURN                      → Terminal
+SUPER + SHIFT + F                   → File manager
+SUPER + SHIFT + B                   → Browser
+SUPER + SHIFT + ALT + B             → Browser (private)
+SUPER + SHIFT + M                   → Music
+SUPER + SHIFT + N                   → Editor
+SUPER + SHIFT + D                   → Docker
+SUPER + SHIFT + G                   → Signal
+SUPER + SHIFT + O                   → Obsidian
+SUPER + SHIFT + W                   → Typora
+SUPER + SHIFT + SLASH               → Passwords
+SUPER + SHIFT + A                   → ChatGPT
+SUPER + SHIFT + ALT + A             → Grok
+SUPER + SHIFT + C                   → Calendar
+SUPER + SHIFT + E                   → Email
+SUPER + SHIFT + Y                   → YouTube
+SUPER + SHIFT + ALT + G             → WhatsApp
+SUPER + SHIFT + CTRL + G            → Google Messages
+SUPER + SHIFT + P                   → Google Photos
+SUPER + SHIFT + X                   → X
+SUPER + SHIFT + ALT + X             → X Post
+SUPER + SPACE                       → Launch apps
+SUPER + ALT + SPACE                 → Omarchy menu
+SUPER + ESCAPE                      → System menu
+SUPER + K                           → Show key bindings
+SUPER + W                           → Close window
+CTRL + ALT + DELETE                 → Close all windows
+SUPER + F                           → Maximize column
+SUPER + CTRL + F                    → Fullscreen window
+SUPER + LEFT                        → Focus column left
+SUPER + RIGHT                       → Focus column right
+SUPER + UP                          → Focus window up
+SUPER + DOWN                        → Focus window down
+SUPER + SHIFT + LEFT                → Move column left
+SUPER + SHIFT + RIGHT               → Move column right
+SUPER + SHIFT + UP                  → Move window up
+SUPER + SHIFT + DOWN                → Move window down
+SUPER + 1-9,0                       → Switch to workspace 1-10
+SUPER + SHIFT + 1-9,0               → Move window to workspace 1-10
+SUPER + TAB                         → Next workspace
+SUPER + SHIFT + TAB                 → Previous workspace
+ALT + TAB                           → Cycle to next window
+ALT + SHIFT + TAB                   → Cycle to prev window
+SUPER + MINUS                       → Shrink column width
+SUPER + EQUAL                       → Expand column width
+SUPER + SHIFT + MINUS               → Shrink window height
+SUPER + SHIFT + EQUAL               → Expand window height
+SUPER + R                           → Cycle column width presets
+SUPER + SHIFT + R                   → Cycle window height presets
+SUPER + [                           → Consume window into column
+SUPER + ]                           → Expel window from column
+SUPER + SHIFT + SPACE               → Toggle top bar
+SUPER + CTRL + SPACE                → Next background in theme
+SUPER + SHIFT + CTRL + SPACE        → Theme menu
+SUPER + COMMA                       → Dismiss last notification
+SUPER + SHIFT + COMMA               → Dismiss all notifications
+SUPER + CTRL + COMMA                → Toggle silencing notifications
+SUPER + ALT + COMMA                 → Invoke last notification
+SUPER + SHIFT + ALT + COMMA         → Restore last notification
+SUPER + CTRL + I                    → Toggle locking on idle
+SUPER + CTRL + N                    → Toggle nightlight
+SUPER + CTRL + E                    → Emoji picker
+PRINT                               → Screenshot with editing
+SHIFT + PRINT                       → Screenshot to clipboard
+ALT + PRINT                         → Screenrecording
+SUPER + PRINT                       → Color picker
+SUPER + CTRL + S                    → Share
+SUPER + C                           → Universal copy
+SUPER + V                           → Universal paste
+SUPER + X                           → Universal cut
+SUPER + CTRL + V                    → Clipboard manager
+SUPER + CTRL + A                    → Audio controls
+SUPER + CTRL + B                    → Bluetooth controls
+SUPER + CTRL + W                    → Wifi controls
+SUPER + CTRL + T                    → Activity
+SUPER + CTRL + L                    → Lock system
+SUPER + SHIFT + Q                   → Quit Niri
+BINDINGS
+}
+
+if [[ "$1" == "--print" || "$1" == "-p" ]]; then
+  output_keybindings
+else
+  output_keybindings |
+    walker --dmenu -p 'Keybindings' --width 800 --height 600
+fi

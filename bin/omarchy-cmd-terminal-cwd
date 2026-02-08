@@ -1,0 +1,34 @@
+#!/bin/bash
+
+# Returns the current working directory of the active terminal window,
+# so a new terminal window can be started in the same directory.
+# Niri wrapper: replaces hyprctl activewindow with niri msg focused-window.
+
+source "$(dirname "$0")/../lib.sh"
+
+if ! is_niri; then
+  exec ~/.local/share/omarchy/bin/omarchy-cmd-terminal-cwd "$@"
+fi
+
+# Get PID of focused window
+terminal_pid=$(niri msg -j focused-window | jq -r '.pid // empty')
+if [[ -z $terminal_pid ]]; then
+  echo "$HOME"
+  exit 0
+fi
+
+shell_pid=$(pgrep -P "$terminal_pid" | tail -n1)
+
+if [[ -n $shell_pid ]]; then
+  cwd=$(readlink -f "/proc/$shell_pid/cwd" 2>/dev/null)
+  shell=$(readlink -f "/proc/$shell_pid/exe" 2>/dev/null)
+
+  # Check if $shell is a valid shell and $cwd is a directory.
+  if grep -qs "$shell" /etc/shells && [[ -d $cwd ]]; then
+    echo "$cwd"
+  else
+    echo "$HOME"
+  fi
+else
+  echo "$HOME"
+fi
