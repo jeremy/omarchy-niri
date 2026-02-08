@@ -1,0 +1,8 @@
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Generated from .tmpl files by install.sh
+config/niri/config.kdl
+config/swaylock/config
