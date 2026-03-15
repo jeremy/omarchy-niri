@@ -1,0 +1,15 @@
+#!/bin/bash
+
+# Restart the night light.
+# Niri wrapper: replaces hyprsunset with wlsunset.
+
+source "$(dirname "$0")/../lib.sh"
+
+if ! is_niri; then
+  exec ~/.local/share/omarchy/bin/omarchy-restart-hyprsunset "$@"
+fi
+
+pkill -x wlsunset 2>/dev/null || true
+
+wlsunset -t 4000 -T 6000 &
+disown

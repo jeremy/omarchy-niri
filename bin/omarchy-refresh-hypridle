@@ -1,0 +1,12 @@
+#!/bin/bash
+
+# Refresh idle manager configuration.
+# Niri wrapper: swayidle has no config file, just restart it.
+
+source "$(dirname "$0")/../lib.sh"
+
+if ! is_niri; then
+  exec ~/.local/share/omarchy/bin/omarchy-refresh-hypridle "$@"
+fi
+
+omarchy-restart-hypridle

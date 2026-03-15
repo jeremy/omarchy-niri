@@ -1,0 +1,12 @@
+#!/bin/bash
+
+# Refresh night light configuration.
+# Niri wrapper: wlsunset has no config file, just restart it.
+
+source "$(dirname "$0")/../lib.sh"
+
+if ! is_niri; then
+  exec ~/.local/share/omarchy/bin/omarchy-refresh-hyprsunset "$@"
+fi
+
+omarchy-restart-hyprsunset

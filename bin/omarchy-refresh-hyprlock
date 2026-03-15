@@ -1,0 +1,12 @@
+#!/bin/bash
+
+# Refresh lock screen configuration.
+# Niri wrapper: replaces hyprlock.conf with swaylock/config.
+
+source "$(dirname "$0")/../lib.sh"
+
+if ! is_niri; then
+  exec ~/.local/share/omarchy/bin/omarchy-refresh-hyprlock "$@"
+fi
+
+omarchy-refresh-config swaylock/config
