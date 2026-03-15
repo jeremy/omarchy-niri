@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Locks the system using swaylock, but not before ensuring 1password has also been locked, and the screensaver stopped.
-# Niri wrapper: replaces hyprlock with swaylock.
+# Niri wrapper: replaces hyprlock with swaylock, hyprctl switchxkblayout with niri msg.
 
 source "$(dirname "$0")/../lib.sh"
 
@@ -11,6 +11,9 @@ fi
 
 # Lock the screen
 pidof swaylock || swaylock &
+
+# Set keyboard layout to default (first layout)
+niri msg action switch-layout 0 >/dev/null 2>&1 || true
 
 # Ensure 1password is locked
 if pgrep -x "1password" >/dev/null; then

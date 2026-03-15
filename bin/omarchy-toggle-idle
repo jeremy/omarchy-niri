@@ -11,7 +11,7 @@ fi
 
 if pgrep -x swayidle >/dev/null; then
   pkill -x swayidle
-  notify-send "Stop locking computer when idle"
+  notify-send "󱫖    Stop locking computer when idle"
 else
   swayidle -w \
     timeout 150 'pidof swaylock || omarchy-launch-screensaver' \
@@ -21,5 +21,7 @@ else
     before-sleep 'loginctl lock-session' \
     lock 'omarchy-lock-screen' &
   disown
-  notify-send "Now locking computer when idle"
+  notify-send "󱫖    Now locking computer when idle"
 fi
+
+pkill -RTMIN+9 waybar
