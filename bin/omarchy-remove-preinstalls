@@ -1,0 +1,36 @@
+#!/bin/bash
+
+# Remove preinstalled Omarchy applications.
+# Niri wrapper: skips Hyprland bindings copy and reload (niri uses config.kdl).
+
+source "$(dirname "$0")/../lib.sh"
+
+if ! is_niri; then
+  exec ~/.local/share/omarchy/bin/omarchy-remove-preinstalls "$@"
+fi
+
+if gum confirm "Are you sure you want to remove all preinstalled web apps, TUI wrappers, and desktop applications?"; then
+  echo -e "Removing preinstalled Omarchy applications...\n"
+
+  omarchy-webapp-remove-all
+  omarchy-tui-remove-all
+
+  # Skip hypr bindings copy and reload — niri keybindings are in config.kdl
+
+  omarchy-pkg-drop \
+    aether \
+    typora \
+    spotify \
+    libreoffice-fresh \
+    1password-beta \
+    1password-cli \
+    xournalpp \
+    signal-desktop \
+    pinta \
+    obsidian \
+    obs-studio \
+    kdenlive \
+    lazydocker \
+    opencode \
+    claude-code
+fi
